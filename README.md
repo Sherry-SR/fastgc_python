@@ -17,4 +17,5 @@ run pytest directly
 
 ```pytest```
 
-(see details in **test_growcut.py**)
+Test 1: **test_growcut.py**
+
