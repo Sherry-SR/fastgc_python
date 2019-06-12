@@ -13,9 +13,9 @@ run fastgc function with image data **img**, initial seed labels **seeds**
 ```fastgc(img, seeds, newSeg = True, labCrt=None, distCrt=None, labPre=None, distPre=None, verbose = True)```
 
 ## Test example
-run pytest directly
+run ```pytest``` directly
 
-```pytest```
+### Test list
 
 Test 1: **test_growcut.py**
 
