@@ -1,0 +1,5 @@
+/results/*
+.pytest_cache/*
+.vscode/*
+fastgc.egg-info/*
+build/*

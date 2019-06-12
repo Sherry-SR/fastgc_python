@@ -5,8 +5,7 @@ import numpy as np
 from skimage import img_as_float
 import nibabel as nib
 import matplotlib.pylab as plt
-from skimage.morphology import dilation, erosion, square
-from math import sqrt
+from scipy.ndimage.morphology import binary_dilation, binary_erosion
 from myutils.fibheap import FibonacciHeap
 
 def get_neighbours(p, exclude_p=True, shape=None):
@@ -26,16 +25,20 @@ def get_neighbours(p, exclude_p=True, shape=None):
         neighbours = neighbours[valid]
     return neighbours
 
-def fastgc(img, seeds, newSeg, labCrt=None, distCrt=None, labPre=None, distPre=None):
+def fastgc(img, seeds, newSeg = True, labCrt=None, distCrt=None, labPre=None, distPre=None, verbose = True):
     img = img_as_float(img)
 
     # initialization of current distance and label for growcut
     distCrt = np.zeros(img.shape)
     if newSeg:
+        # for newSeg, use copy seed label as current label
         labCrt = np.copy(seeds)
+        # distCrt=0 at seeds, distCrt=np.inf elsewhere
         distCrt[seeds == 0] = np.inf
     else:
+        # if not newSeg, only use the seeds with different labels from labPre
         mask = seeds>0 and seeds != labPre
+        # update labCrt with seed label
         labCrt[mask] = seeds[mask]
         distCrt[mask] = 0
         labCrt[~mask] = 0
@@ -43,10 +46,13 @@ def fastgc(img, seeds, newSeg, labCrt=None, distCrt=None, labPre=None, distPre=N
         
     # initialzation of fibonacci heap
     fh = FibonacciHeap()
-    iterates = np.indices(img.shape)
-    iterates = np.reshape(iterates, (iterates.shape[0],-1))
+    # choose non-labeled pixels and their neighbors as heap nodes
+    mask = labCrt == 0
+    mask = binary_dilation(mask)
+    iterates = np.array(np.nonzero(mask))
     heapNodes = np.empty(img.shape, dtype = FibonacciHeap.Node)
-    for i in range(0, img.size):
+    # insert to fibonacci heap with key value equal to distCrt(p)
+    for i in range(0, iterates.shape[1]):
         ind = tuple(iterates[:,i])
         heapNodes[ind] = fh.insert(distCrt[ind], ind)
 
@@ -58,13 +64,15 @@ def fastgc(img, seeds, newSeg, labCrt=None, distCrt=None, labPre=None, distPre=N
         if not newSeg:
             if np.isinf(distCrt[pind]):
                 break
+            # compare current distance with previous distance, use the shortest one
             elif distCrt[pind] > distPre[pind]:
                 distCrt[pind] = distPre[pind]
                 labCrt[pind] = labPre[pind]
                 continue
         # regular dijkstra
-        print("-----------Dijkastra-----------")
-        print("Current point:", ind, "Distance from seed:", distCrt[ind], "Seed Label:", labCrt[ind])
+        if verbose:
+            print("-----------Dijkastra-----------")
+            print("Current point:", ind, "Distance from seed:", distCrt[ind], "Seed Label:", labCrt[ind])
         neighbours = get_neighbours(np.array(pind), exclude_p=True, shape=img.shape)
         for ind in neighbours:
             ind =tuple(ind)
@@ -72,6 +80,7 @@ def fastgc(img, seeds, newSeg, labCrt=None, distCrt=None, labPre=None, distPre=N
             if dist < distCrt[ind]:
                 distCrt[ind] = dist
                 labCrt[ind] = labCrt[pind]
+                # update fiponacci heap
                 fh.decrease_key(heapNodes[ind], distCrt[ind])
     if not newSeg:
         # get updated points
@@ -85,33 +94,3 @@ def fastgc(img, seeds, newSeg, labCrt=None, distCrt=None, labPre=None, distPre=N
     distPre = np.copy(distCrt)
     labPre = np.copy(labCrt)
     return distPre, labPre
-        
-img = nib.load("/home/SENSETIME/shenrui/Dropbox/SenseTime/data/teeth0001.nii.gz")
-imgdata = img.get_fdata()[420:500, 130:220, 226]
-label = nib.load("/home/SENSETIME/shenrui/Dropbox/SenseTime/data/teeth0001_label_tri.nii.gz")
-labeldata = label.get_fdata()[420:500, 130:220, 226]
-seedsdata = np.zeros(labeldata.shape)
-
-nlabels = np.unique(labeldata)
-for i in nlabels:
-    mask = labeldata == i
-    mask = erosion(mask, square(3))
-    mask = erosion(mask, square(3))
-    seedsdata = seedsdata + mask * (i+1)
-
-distPre, labPre = fastgc(imgdata, seedsdata, True)
-plt.figure(1)
-plt.imshow(imgdata, cmap="gray")
-plt.title("original img")
-plt.figure(2)
-plt.imshow(labeldata)
-plt.title("original label")
-plt.figure(3)
-plt.imshow(seedsdata)
-plt.title("original seeds")
-plt.figure(4)
-plt.imshow(labPre)
-plt.title("growcut results")
-
-plt.show()
-
