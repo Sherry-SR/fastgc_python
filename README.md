@@ -4,10 +4,12 @@ Implemented fast grow cut algorithm based on "An Effective Interactive Medical I
 
 ## Installation
 run setup file (currently has some bugs, do not run this step)
+
 ```python setup.py```
 
 ## Usage
 run fastgc function with image data **img**, initial seed labels **seeds**
+
 ```fastgc(img, seeds, newSeg = True, labCrt=None, distCrt=None, labPre=None, distPre=None, verbose = True)```
 
 ## Test example
