@@ -16,7 +16,7 @@ def test_fastgrowcut():
     
     imgpath = "/home/SENSETIME/shenrui/Dropbox/SenseTime/data/teeth0001.nii.gz"
     labelpath = "/home/SENSETIME/shenrui/Dropbox/SenseTime/data/teeth0001_label_tri.nii.gz"
-    savepath = "/home/SENSETIME/shenrui/Dropbox/SenseTime/fastgc/results"
+    savepath = "/home/SENSETIME/shenrui/Dropbox/SenseTime/fastgc_python/results"
 
     img = nib.load(imgpath)
     imgdata = img.get_fdata()[420:500, 130:220, 223:230]

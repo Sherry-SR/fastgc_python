@@ -25,11 +25,12 @@ def get_neighbours(p, exclude_p=True, shape=None):
         neighbours = neighbours[valid]
     return neighbours
 
-def fastgc(img, seeds, newSeg = True, labCrt=None, distCrt=None, labPre=None, distPre=None, verbose = True):
+def fastgc(img, seeds, newSeg = True, labPre=None, distPre=None, verbose = True):
     img = img_as_float(img)
 
     # initialization of current distance and label for growcut
     distCrt = np.zeros(img.shape)
+    labCrt = np.zeros(img.shape)
     if newSeg:
         # for newSeg, use copy seed label as current label
         labCrt = np.copy(seeds)
@@ -37,6 +38,8 @@ def fastgc(img, seeds, newSeg = True, labCrt=None, distCrt=None, labPre=None, di
         distCrt[seeds == 0] = np.inf
     else:
         # if not newSeg, only use the seeds with different labels from labPre
+        if labPre is None or distPre is None:
+            raise Exception("No previous label or distance provided!")
         mask = seeds>0 and seeds != labPre
         # update labCrt with seed label
         labCrt[mask] = seeds[mask]
