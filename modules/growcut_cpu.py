@@ -59,6 +59,8 @@ def fastgc(img, seeds, newSeg = True, labPre=None, distPre=None, verbose = True)
         ind = tuple(iterates[:,i])
         heapNodes[ind] = fh.insert(distCrt[ind], ind)
 
+    Ntotal = fh.total_nodes
+    count = 1
     # segmentation/refinement loop
     while fh.total_nodes > 0:
         pnode = fh.extract_min()
@@ -75,7 +77,8 @@ def fastgc(img, seeds, newSeg = True, labPre=None, distPre=None, verbose = True)
         # regular dijkstra
         if verbose:
             print("-----------Dijkastra-----------")
-            print("Current point:", ind, "Distance from seed:", distCrt[ind], "Seed Label:", labCrt[ind])
+            print(str(count)+"/"+str(Ntotal),"Current point:", ind, "Distance from seed:", distCrt[ind], "Seed Label:", labCrt[ind])
+            count = count + 1
         neighbours = get_neighbours(np.array(pind), exclude_p=True, shape=img.shape)
         for ind in neighbours:
             ind =tuple(ind)
