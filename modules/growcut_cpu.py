@@ -29,8 +29,8 @@ def fastgc(img, seeds, newSeg = True, labPre=None, distPre=None, verbose = True)
     img = img_as_float(img)
 
     # initialization of current distance and label for growcut
-    distCrt = np.zeros(img.shape)
-    labCrt = np.zeros(img.shape)
+    distCrt = np.zeros(seeds.shape)
+    labCrt = np.zeros(seeds.shape)
     if newSeg:
         # for newSeg, use copy seed label as current label
         labCrt = np.copy(seeds)
